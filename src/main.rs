@@ -4,13 +4,20 @@ use std::{
     net::{TcpListener, TcpStream},
 };
 
+use webserver_rs::ThreadPool;
+
 fn main() {
     let listener = TcpListener::bind("127.0.0.1:6660").unwrap();
 
-    for stream in listener.incoming() {
+    let pool = ThreadPool::new(10);
+
+    // get first two incoming connections and end the listener
+    for stream in listener.incoming().take(4) {
         let stream = stream.unwrap();
 
-        handle_connection(stream);
+        pool.execute(|| {
+            handle_connection(stream);
+        });
     }
 }
 
